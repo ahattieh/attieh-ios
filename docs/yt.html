@@ -2,29 +2,32 @@
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>promo</title>
-<style>html,body{margin:0;height:100%;background:#000;overflow:hidden}#p,iframe{position:absolute;top:0;left:0;right:0;bottom:0;width:100%;height:100%;border:0}</style>
+<style>html,body{margin:0;height:100%;background:#000;overflow:hidden}#p,iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:0}.hq #p,.hq iframe{width:200%;height:200%;transform:scale(.5);-webkit-transform:scale(.5);transform-origin:0 0;-webkit-transform-origin:0 0}</style>
 </head><body><div id="p"></div>
 <script>
 /* Amira / Attieh promo player. Apps open this page in an iframe (?v=VIDEO_ID); it embeds YouTube from a real
    https origin (YouTube refuses embeds with no referrer — error 153) and reports state back with postMessage. */
-var q = new URLSearchParams(location.search), id = q.get('v') || '', mute = q.get('mute') === '1';
-function tell(m) { m.amira = 'yt'; m.v = id; try { parent.postMessage(m, '*'); } catch (e) {} }
+var q = new URLSearchParams(location.search), id = q.get('v') || '', mute = q.get('mute') !== '0', hq = q.get('hq') !== '0';
+/* YouTube picks quality from the player's size: draw it at double size and shrink it, so it streams HD */
+if (hq) document.documentElement.className = 'hq';
+function tell(m) { m.amira = 'yt'; m.v = id; try { if (player && player.getPlaybackQuality) m.q = player.getPlaybackQuality(); } catch (e) {} try { parent.postMessage(m, '*'); } catch (e) {} }
 if (!/^[\w-]{11}$/.test(id)) tell({ error: 'bad-id' });
 var player;
 window.onYouTubeIframeAPIReady = function () {
   player = new YT.Player('p', {
     width: "100%", height: "100%", videoId: id, host: 'https://www.youtube.com',
-    playerVars: { autoplay: 1, controls: 0, rel: 0, modestbranding: 1, playsinline: 1, loop: 1, playlist: id, iv_load_policy: 3, disablekb: 1, fs: 0, origin: location.origin },
+    playerVars: { autoplay: 1, mute: mute ? 1 : 0, vq: 'hd1080', controls: 0, rel: 0, modestbranding: 1, playsinline: 1, loop: 1, playlist: id, iv_load_policy: 3, disablekb: 1, fs: 0, origin: location.origin },
     events: {
-      onReady: function (e) { if (mute) e.target.mute(); e.target.playVideo(); tell({ ready: 1 }); },
-      onStateChange: function (e) { tell({ state: e.data }); },
+      onReady: function (e) { if (mute) e.target.mute(); try { e.target.setPlaybackQuality('hd1080'); } catch (x) {} e.target.playVideo(); tell({ ready: 1 }); },
+      onPlaybackQualityChange: function (e) { tell({ quality: e.data }); },
+      onStateChange: function (e) { if (e.data === 1) { try { e.target.setPlaybackQuality('hd1080'); } catch (x) {} } tell({ state: e.data }); },
       onError: function (e) { tell({ error: e.data }); }
     }
   });
 };
 window.addEventListener('message', function (e) {
   var d = e.data; if (!d || d.amira !== 'cmd' || !player) return;
-  if (d.cmd === 'stop') player.stopVideo(); else if (d.cmd === 'mute') player.mute(); else if (d.cmd === 'unmute') player.unMute();
+  if (d.cmd === 'stop') player.stopVideo(); else if (d.cmd === 'mute') player.mute(); else if (d.cmd === 'unmute') { player.unMute(); player.setVolume(100); }
 });
 var s = document.createElement('script'); s.src = 'https://www.youtube.com/iframe_api';
 s.onerror = function () { tell({ error: 'api-load' }); };
