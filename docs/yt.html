@@ -10,7 +10,7 @@
 var q = new URLSearchParams(location.search), id = q.get('v') || '', mute = q.get('mute') !== '0', hq = q.get('hq') !== '0', loop = q.get('loop') === '1';
 /* YouTube picks quality from the player's size: draw it at double size and shrink it, so it streams HD */
 if (hq) document.documentElement.className = 'hq';
-function tell(m) { m.amira = 'yt'; m.v = id; try { if (player && player.getPlaybackQuality) m.q = player.getPlaybackQuality(); } catch (e) {} try { parent.postMessage(m, '*'); } catch (e) {} }
+function tell(m) { m.amira = 'yt'; m.v = id; try { if (player && player.getPlaybackQuality) { m.q = player.getPlaybackQuality(); var lv = player.getAvailableQualityLevels && player.getAvailableQualityLevels(); if (lv && lv.length) m.max = lv[0] === 'auto' ? lv[1] : lv[0]; } } catch (e) {} try { parent.postMessage(m, '*'); } catch (e) {} }
 if (!/^[\w-]{11}$/.test(id)) tell({ error: 'bad-id' });
 var player;
 window.onYouTubeIframeAPIReady = function () {
