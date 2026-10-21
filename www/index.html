@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Attieh</title>
+<script>
+/* apply the saved theme and language before anything is drawn, so the splash never changes colour or side */
+(function () {
+  function get(k) { try { return JSON.parse(localStorage.getItem('amira.' + k)); } catch (e) { return null; } }
+  var st = get('settings') || {}, pid = get('profile'), ps = get('profiles') || [], me = null;
+  for (var i = 0; i < ps.length; i++) if (ps[i].id === pid) me = ps[i];
+  var lang = (me && me.lang) || 'ar';
+  window.__boot = { theme: st.theme || 'night', lang: lang };
+  if (lang !== 'ar') { document.documentElement.setAttribute('dir', 'ltr'); document.documentElement.setAttribute('lang', lang); document.write('<link rel="stylesheet" id="main-css" href="css/style.ltr.css">'); }
+  else document.write('<link rel="stylesheet" id="main-css" href="css/style.css">');
+})();
+</script>
+</head>
+<body>
+<script>document.body.setAttribute('data-theme', window.__boot.theme);</script>
+<div id="splash">
+  <div class="sp-glow"></div>
+  <div class="sp-rings"><i></i><i></i><i></i></div>
+  <div class="sp-logo">
+    <div class="sp-word"><b>A</b><b>t</b><b>t</b><b>i</b><b>e</b><b>h</b></div>
+    <div class="sp-sub">IPTV</div>
+    <div class="sp-shine"></div>
+  </div>
+  <div class="sp-bar"><i></i></div>
+  <div class="sp-status" id="sp-status">أهلاً بك</div>
+  <div class="sp-ver" id="sp-ver">Version 1.0.0</div>
+</div>
+
+<div id="stage"><div class="st-l"></div><div class="st-l"></div><div class="st-shade"></div></div>
+<header id="topnav">
+  <div class="sn-me"><div class="avatar-btn focusable" id="avatar-btn" data-action="profiles" title="تغيير الملف الشخصي"></div><div class="sn-who"><b id="sn-name"></b><small>تغيير الملف الشخصي</small></div></div>
+  <nav class="nav">
+    <div class="nav-item focusable" data-screen="search"><svg class="ic" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.8l-.3-.3A6.5 6.5 0 1 0 14 15.5l.3.3v.8l5 5 1.5-1.5-5-5zm-6 0a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9z"/></svg><span>بحث</span></div>
+    <div class="nav-item focusable active" data-screen="home"><svg class="ic" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3 2 12h3v8h5v-6h4v6h5v-8h3L12 3z"/></svg><span>الرئيسية</span></div>
+    <div class="nav-item focusable" data-screen="live"><svg class="ic" viewBox="0 0 24 24" fill="currentColor"><path d="M21 6h-7.6l3.3-3.3-.7-.7L12 6 8 2l-.7.7L10.6 6H3a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2zm0 13H3V8h18v11z"/></svg><span>القنوات</span></div>
+    <div class="nav-item focusable hidden" data-screen="movies"><svg class="ic" viewBox="0 0 24 24" fill="currentColor"><path d="M18 4l2 4h-3l-2-4h-2l2 4h-3l-2-4H8l2 4H7L5 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V4h-4z"/></svg><span>الأفلام</span></div>
+    <div class="nav-item focusable hidden" data-screen="shows"><svg class="ic" viewBox="0 0 24 24" fill="currentColor"><path d="M4 6H2v14a2 2 0 0 0 2 2h14v-2H4V6zm16-4H8a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2zm-8 12.5v-9l6 4.5-6 4.5z"/></svg><span>المسلسلات</span></div>
+    <div class="nav-item focusable" data-screen="favs"><svg class="ic" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg><span>قائمتي</span></div>
+    <div class="nav-item focusable" data-screen="settings"><svg class="ic" viewBox="0 0 24 24" fill="currentColor"><path d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6a.5.5 0 0 0 .1-.6l-2-3.5a.5.5 0 0 0-.6-.2l-2.5 1a7.3 7.3 0 0 0-1.7-1l-.4-2.6a.5.5 0 0 0-.5-.4h-4a.5.5 0 0 0-.5.4l-.4 2.7a7.6 7.6 0 0 0-1.7 1l-2.5-1a.5.5 0 0 0-.6.2l-2 3.4a.5.5 0 0 0 .1.6L4.6 11a7.6 7.6 0 0 0 0 2l-2.1 1.6a.5.5 0 0 0-.1.6l2 3.5a.5.5 0 0 0 .6.2l2.5-1a7.3 7.3 0 0 0 1.7 1l.4 2.6a.5.5 0 0 0 .5.4h4a.5.5 0 0 0 .5-.4l.4-2.6a7.6 7.6 0 0 0 1.7-1l2.5 1a.5.5 0 0 0 .6-.2l2-3.5a.5.5 0 0 0-.1-.6L19.4 13zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg><span>الإعدادات</span></div>
+  </nav>
+</header>
+<div class="brand-corner">Attieh<span>IPTV</span></div>
+<div class="clock" id="clock"></div>
+<div class="m-back" id="m-back"><svg class="ic" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.8l5.6-5.6L12 4l-8 8 8 8 1.4-1.4L7.8 13H20z"/></svg></div>
+
+<main>
+  <section class="screen active" id="screen-home">
+    <div class="home-info" id="home-info"></div>
+    <div class="scroller" id="home-scroller" data-pad-top="7" data-pad-bottom="2"></div>
+  </section>
+
+  <section class="screen" id="screen-live">
+    <div class="live-layout">
+      <div class="groups">
+        <div class="groups-hint" id="hint-live"></div>
+        <div class="groups-vp"><div class="scroller" id="groups-live" data-pad-top="0" data-pad-bottom="1"></div></div>
+      </div>
+      <div class="grid-wrap">
+        <div class="live-top">
+          <div class="live-top-info">
+        <div class="kind-search"><span class="ks-ico"><svg class="ic" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.8l-.3-.3A6.5 6.5 0 1 0 14 15.5l.3.3v.8l5 5 1.5-1.5-5-5zm-6 0a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9z"/></svg></span><input class="focusable ks-input" id="q-live" data-kind="live" type="text" placeholder="ابحث في القنوات بالاسم أو الرقم…" autocomplete="off"><span class="ks-clear" data-kind="live">✕</span></div>
+        <div class="head-row"><div class="grid-head" id="head-live"></div><div class="chips"><div class="sort-chip focusable" data-action="guide" id="guide-chip">📅 دليل البرامج</div><div class="sort-chip focusable" data-action="sort" data-kind="live" id="sort-live"></div></div></div>
+            <div class="lp-info" id="lp-info"></div>
+          </div>
+          <div class="lp-box focusable" id="lp-box" data-action="lp-expand"><div class="lp-ph">📺<span>وقّف على أي قناة لتشوفها هون</span></div></div>
+        </div>
+        <div class="grid-viewport">
+          <div class="scroller grid" id="grid-live" data-pad-top="1" data-pad-bottom="2"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="screen-movies">
+    <div class="live-layout">
+      <div class="groups">
+        <div class="groups-hint" id="hint-movies"></div>
+        <div class="groups-vp"><div class="scroller" id="groups-movies" data-pad-top="0" data-pad-bottom="1"></div></div>
+      </div>
+      <div class="grid-wrap">
+        <div class="kind-search"><span class="ks-ico"><svg class="ic" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.8l-.3-.3A6.5 6.5 0 1 0 14 15.5l.3.3v.8l5 5 1.5-1.5-5-5zm-6 0a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9z"/></svg></span><input class="focusable ks-input" id="q-movies" data-kind="movies" type="text" placeholder="ابحث في الأفلام…" autocomplete="off"><span class="ks-clear" data-kind="movies">✕</span></div>
+        <div class="head-row"><div class="grid-head" id="head-movies"></div><div class="sort-chip focusable" data-action="sort" data-kind="movies" id="sort-movies"></div></div>
+        <div class="grid-viewport">
+          <div class="scroller grid" id="grid-movies" data-pad-top="1" data-pad-bottom="2"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="screen-shows">
+    <div class="live-layout">
+      <div class="groups">
+        <div class="groups-hint" id="hint-shows"></div>
+        <div class="groups-vp"><div class="scroller" id="groups-shows" data-pad-top="0" data-pad-bottom="1"></div></div>
+      </div>
+      <div class="grid-wrap">
+        <div class="kind-search"><span class="ks-ico"><svg class="ic" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.8l-.3-.3A6.5 6.5 0 1 0 14 15.5l.3.3v.8l5 5 1.5-1.5-5-5zm-6 0a4.5 4.5 0 1 1 0-9 4.5 4.5 0 0 1 0 9z"/></svg></span><input class="focusable ks-input" id="q-shows" data-kind="shows" type="text" placeholder="ابحث في المسلسلات…" autocomplete="off"><span class="ks-clear" data-kind="shows">✕</span></div>
+        <div class="head-row"><div class="grid-head" id="head-shows"></div><div class="sort-chip focusable" data-action="sort" data-kind="shows" id="sort-shows"></div></div>
+        <div class="grid-viewport">
+          <div class="scroller grid" id="grid-shows" data-pad-top="1" data-pad-bottom="2"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="screen-favs">
+    <div class="scroller" id="mylist-scroller" data-pad-top="7" data-pad-bottom="2"></div>
+  </section>
+
+  <section class="screen" id="screen-series">
+    <div class="scroller" id="series-scroller" data-pad-top="7" data-pad-bottom="2"></div>
+  </section>
+
+  <section class="screen" id="screen-profiles">
+    <div class="pbg" id="pbg"><div class="pbg-l"></div><div class="pbg-l"></div><div class="pbg-shade"></div><div class="pbg-info" id="pbg-info"></div></div>
+    <div class="prof-wrap">
+      <div class="prof-logo">Attieh<span>IPTV</span></div>
+      <h1 class="prof-title" id="prof-title">مين عم يتفرّج؟</h1>
+      <div class="prof-list" id="prof-list"></div>
+      <div class="prof-actions" id="prof-actions"></div>
+    </div>
+    <div class="prof-form" id="prof-form">
+      <div class="pe-glow"></div>
+      <h1 class="pe-title" id="pe-title">تعديل الملف الشخصي</h1>
+      <div class="pe-body">
+        <div class="pe-rows">
+          <label class="pe-row pe-name"><span class="pe-l">الاسم</span><input class="focusable" id="prof-name" type="text" maxlength="16" placeholder="مثلاً: أحمد" autocomplete="off"></label>
+          <div class="pe-row focusable" data-action="pe-avatar"><span class="pe-l">صورة الملف الشخصي</span><span class="pe-v pe-arrow">‹</span></div>
+          <div class="pe-row focusable" data-action="pe-lang"><span class="pe-l">لغة الملف الشخصي</span><span class="pe-v" id="pe-lang-v">العربية</span></div>
+          <div class="pe-row focusable" data-action="prof-kids" id="prof-kids"><span class="pe-l">ملف أطفال 👶</span><span class="pe-sw" id="pe-kids-sw"><i></i></span></div>
+          <div class="pe-row pe-del focusable" data-action="prof-delete" id="pe-del"><span class="pe-l">🗑 حذف الملف</span></div>
+        </div>
+        <div class="pe-side">
+          <div class="pe-big focusable" data-action="pe-avatar" id="pe-big"></div>
+          <div class="btn primary focusable pe-save" data-action="prof-save">حفظ</div>
+        </div>
+      </div>
+      <div class="pe-pick" id="pe-pick">
+        <h1 class="pe-title">اختر صورة الملف الشخصي</h1>
+        <div class="pe-grid-vp"><div class="scroller pe-grid" id="pe-grid" data-pad-top="1" data-pad-bottom="2"></div></div>
+      </div>
+      <div class="pe-langs" id="pe-langs">
+        <div class="pe-lt">اختر اللغة</div>
+        <div class="pe-lang focusable" data-action="pe-setlang" data-lang="ar">العربية</div>
+        <div class="pe-lang focusable" data-action="pe-setlang" data-lang="en">English</div>
+        <div class="pe-lang focusable" data-action="pe-setlang" data-lang="es">Español</div>
+        <div class="pe-lang focusable" data-action="pe-setlang" data-lang="fr">Français</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen" id="screen-info">
+    <div class="scroller" id="info-scroller" data-pad-top="7" data-pad-bottom="2"></div>
+  </section>
+
+  <section class="screen" id="screen-search">
+    <div class="search-bar">
+      <input id="search-input" class="focusable" type="text" placeholder="ابحث باسم القناة أو رقمها…" autocomplete="off">
+    </div>
+    <div class="page-viewport search-results">
+      <div class="scroller grid" id="search-grid" data-pad-top="1" data-pad-bottom="2"></div>
+    </div>
+  </section>
+
+  <section class="screen" id="screen-settings">
+    <div class="page-viewport">
+      <div class="scroller settings" id="settings-form" data-pad-top="1" data-pad-bottom="3">
+        <h2 class="section-title">المظهر</h2>
+        <div class="themes" id="themes"></div>
+
+        <h2 class="section-title">قوائم التشغيل</h2>
+        <div class="pl-list" id="pl-list"></div>
+        <div class="field"><label>اسم القائمة الجديدة (اختياري)</label>
+          <input class="focusable" id="set-plname" type="text" maxlength="24" placeholder="مثلاً: اشتراك البيت" autocomplete="off"></div>
+
+        <h2 class="section-title">إضافة قائمة M3U</h2>
+        <div class="field"><label>رابط قائمة القنوات (M3U / M3U8)</label>
+          <input class="focusable" id="set-m3u" type="url" dir="ltr" placeholder="https://example.com/playlist.m3u"></div>
+        <div class="field"><label>رابط دليل البرامج EPG بصيغة XMLTV (اختياري، يدعم ‎.xml و ‎.xml.gz)</label>
+          <input class="focusable" id="set-epg" type="url" dir="ltr" placeholder="https://example.com/epg.xml"></div>
+        <div class="row"><div class="btn primary focusable" data-action="load-m3u">إضافة وتشغيل</div></div>
+
+        <h2 class="section-title">إضافة حساب Xtream Codes</h2>
+        <div class="field"><label>عنوان السيرفر</label>
+          <input class="focusable" id="set-xs" type="url" dir="ltr" placeholder="http://server.com:8080"></div>
+        <div class="field"><label>اسم المستخدم</label>
+          <input class="focusable" id="set-xu" type="text" dir="ltr" autocomplete="off"></div>
+        <div class="field"><label>كلمة المرور</label>
+          <input class="focusable" id="set-xp" type="password" dir="ltr" autocomplete="off"></div>
+        <div class="row"><div class="btn primary focusable" data-action="load-xtream">إضافة وتسجيل الدخول</div></div>
+        <p class="note" id="acct-info"></p>
+
+        <h2 class="section-title">قفل الأهالي</h2>
+        <div class="row">
+          <div class="btn focusable" data-action="pin-set" id="pin-btn">تعيين رمز القفل</div>
+          <div class="btn focusable" data-action="pin-clear" id="pin-clear">إلغاء القفل</div>
+        </div>
+        <div class="row" id="lock-kinds">
+          <div class="btn focusable" data-action="lock-kind" data-kind="live">🔒 فئات القنوات</div>
+          <div class="btn focusable" data-action="lock-kind" data-kind="movies">🔒 فئات الأفلام</div>
+          <div class="btn focusable" data-action="lock-kind" data-kind="shows">🔒 فئات المسلسلات</div>
+        </div>
+        <div class="lock-list" id="lock-list"></div>
+        <p class="note">اختار القسم، وبعدين اكبس OK على أي فئة لتقفلها أو تفتحها. أو من داخل القسم: وقّف على الفئة واكبس <i class="kd y"></i> أو 🔒 جنبها. الفئات المقفولة ما بتظهر بالرئيسية أو البحث، وبتحتاج الرمز لتنفتح (مرة وحدة لحد ما تسكّر التطبيق). لإخفاء فئة: <i class="kd g"></i> أو 👁.</p>
+
+        <h2 class="section-title">أخرى</h2>
+        <div class="row">
+          <div class="btn focusable" data-action="intro-sound" id="isound-btn">صوت بداية التطبيق</div>
+          <div class="btn focusable" data-action="autonext" id="autonext-btn">التشغيل التلقائي للحلقة التالية</div>
+          <div class="btn focusable" data-action="autolast" id="autolast-btn">فتح آخر قناة عند التشغيل</div>
+          <div class="btn focusable" data-action="lp-mode" id="lp-mode-btn">المعاينة المصغّرة للقنوات</div>
+          <div class="btn focusable" data-action="preview" id="preview-btn">معاينة الصورة على شريط الوقت</div>
+          <div class="btn focusable" data-action="debug" id="debug-btn">معلومات التشغيل</div>
+          <div class="btn primary focusable" data-action="reload-cats">تحديث المحتوى</div>
+          <div class="btn focusable" data-action="reload-epg">تحديث دليل البرامج</div>
+          <div class="btn focusable" data-action="load-demo">القنوات التجريبية</div>
+          <div class="btn focusable" data-action="clear">مسح كل البيانات</div>
+        </div>
+        <p class="note">التطبيق مشغّل فقط ولا يوفّر أي قنوات. استخدم قوائم من مزوّد مرخّص أو اشتراك نظامي.<br>
+        التنقل: الأسهم للتحرك · OK للاختيار · رجوع للخلف · <i class="kd r"></i> لإضافة قناة للمفضلة · أثناء المشاهدة: ◀▶ ترجيع/تقديم (اضغط عدة مرات لقفزات أكبر) · ▲▼ أو CH+/CH− لتغيير القناة · OK إيقاف/تشغيل · الأرقام للانتقال لقناة برقمها.</p>
+        <p class="note app-ver">Attieh · Version <span id="set-ver"></span></p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div id="player">
+  <video id="video" autoplay playsinline></video>
+  <div class="player-msg" id="player-msg"><div class="spinner"></div><div class="msg-text" id="msg-text"></div></div>
+  <div class="osd" id="osd">
+    <div class="osd-top">
+      <div class="osd-ch">
+        <div class="osd-logo" id="osd-logo"></div>
+        <div>
+          <div class="osd-num" id="osd-num"></div>
+          <div class="osd-name" id="osd-name"></div>
+        </div>
+      </div>
+      <div class="osd-clock" id="osd-clock"></div>
+    </div>
+    <div class="osd-bottom">
+      <div class="osd-meta"><span class="badge-live" id="osd-badge">مباشر</span><span class="osd-behind" id="osd-behind"></span></div>
+      <div class="osd-now" id="osd-now"></div>
+      <div class="osd-time" id="osd-time"></div>
+      <div class="progress big" id="osd-progress-wrap"><i id="osd-progress"></i></div>
+      <div class="seek" id="seek">
+        <div class="seek-times"><span id="seek-cur"></span><span id="seek-dur"></span></div>
+        <div class="seek-prev" id="seek-prev"><div class="prev-frame" id="prev-frame"><video id="prev-vid" muted playsinline preload="none"></video></div><span id="prev-time"></span></div>
+        <div class="seek-track"><i class="seek-buf" id="seek-buf"></i><i class="seek-fill" id="seek-fill"></i><b class="seek-thumb" id="seek-thumb"><span id="seek-tip"></span></b></div>
+      </div>
+      <div class="pctrls" id="pctrls">
+        <div class="pc" data-c="exit">✕ خروج</div>
+        <div class="pc" data-c="prevch" id="pc-prevch"><svg class="ic" viewBox="0 0 24 24" fill="currentColor"><path d="M6.99 11 3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z"/></svg> القناة السابقة</div>
+        <div class="pc" data-c="opts" id="pc-opts">⚙ الإعدادات</div>
+        <div class="pc" data-c="eps" id="pc-eps"><svg class="ic" viewBox="0 0 24 24" fill="currentColor"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg> الحلقات</div>
+        <div class="pc" data-c="back">⏪ 10</div>
+        <div class="pc big" data-c="play" id="pc-play">❚❚</div>
+        <div class="pc" data-c="fwd">10 ⏩</div>
+        <div class="pc" data-c="next" id="pc-next">التالية ⏭</div>
+        <div class="pc" data-c="intro" id="pc-intro">✂ الشارة</div>
+      </div>
+      <div class="osd-next" id="osd-next"></div>
+      <div class="osd-hint" id="osd-hint"></div>
+    </div>
+  </div>
+  <div class="pause-icon" id="pause-icon">❚❚</div>
+  <div class="skipintro" id="skipintro">تخطي الشارة ⏭</div>
+  <div id="pdebug"></div>
+  <div class="upnext" id="upnext">
+    <div class="upnext-thumb" id="upnext-thumb"></div>
+    <div class="upnext-txt"><small>الحلقة التالية</small><b id="upnext-title"></b><span id="upnext-hint">OK للتشغيل الآن · رجوع للإلغاء</span></div>
+    <div class="upnext-count" id="upnext-count"></div>
+  </div>
+  <div class="ep-panel" id="ep-panel">
+    <div class="ep-panel-title" id="ep-panel-title"></div>
+    <div class="ep-strip-vp"><div class="ep-strip" id="ep-strip"></div></div>
+  </div>
+  <div class="numentry" id="numentry"></div>
+  <div class="popts" id="popts"><div class="popts-title">إعدادات المشاهدة</div><div id="popts-rows"></div><div class="popts-hint">▲▼ للتنقل · ◀▶ للاختيار · رجوع للإغلاق</div></div>
+  <div class="sleep-note" id="sleep-note"></div>
+  <div class="pdialog" id="pdialog">
+    <div class="pdialog-box">
+      <div class="pdialog-title" id="pdialog-title"></div>
+      <div class="pdialog-sub" id="pdialog-sub"></div>
+      <div class="pdialog-btns" id="pdialog-btns"></div>
+    </div>
+  </div>
+</div>
+
+<div id="amodal"><div class="am-box">
+  <div class="am-title" id="am-title"></div>
+  <div class="am-sub" id="am-sub"></div>
+  <input id="am-input" type="hidden">
+  <div class="am-pad" id="am-pad">
+    <div class="am-dots" id="am-dots"></div>
+    <div class="am-keys"><div class="kp focusable" data-kp="1">1</div><div class="kp focusable" data-kp="2">2</div><div class="kp focusable" data-kp="3">3</div><div class="kp focusable" data-kp="4">4</div><div class="kp focusable" data-kp="5">5</div><div class="kp focusable" data-kp="6">6</div><div class="kp focusable" data-kp="7">7</div><div class="kp focusable" data-kp="8">8</div><div class="kp focusable" data-kp="9">9</div><div class="kp focusable" data-kp="del"><svg class="ic" viewBox="0 0 24 24" fill="currentColor"><path d="M22 3H7c-.7 0-1.2.4-1.6.9L0 12l5.4 8.1c.4.5.9.9 1.6.9h15a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm-3 12.6L17.6 17 14 13.4 10.4 17 9 15.6 12.6 12 9 8.4 10.4 7 14 10.6 17.6 7 19 8.4 15.4 12 19 15.6z"/></svg></div><div class="kp focusable" data-kp="0">0</div><div class="kp focusable ok" data-kp="ok">✓</div></div>
+  </div>
+  <div class="am-btns" id="am-btns"></div>
+</div></div>
+<div id="screen-busy"><div class="spinner"></div></div>
+<div id="loader"><div class="spinner"></div><div id="loader-text"></div></div>
+<div id="toast"></div>
+
+<script src="js/lib/capacitor.js"></script>
+<script src="js/lib/hls.min.js"></script>
+<script src="js/lib/pako_inflate.min.js"></script>
+<script src="js/nav.js"></script>
+<script src="js/avatars.js"></script>
+<script src="js/m3u.js"></script>
+<script src="js/epg.js"></script>
+<script src="js/glyphs.js"></script>
+<script src="js/i18n.js"></script>
+<script src="js/app.js"></script>
+<script>Glyphs.start();</script>
+</body>
+</html>

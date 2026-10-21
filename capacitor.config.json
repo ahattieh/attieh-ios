@@ -1,0 +1,15 @@
+{
+  "appId": "com.ahmad.attieh",
+  "appName": "Attieh",
+  "webDir": "www",
+  "backgroundColor": "#07070b",
+  "ios": {
+    "contentInset": "never",
+    "scrollEnabled": false,
+    "allowsLinkPreview": false,
+    "limitsNavigationsToAppBoundDomains": false
+  },
+  "plugins": {
+    "CapacitorHttp": { "enabled": true }
+  }
+}

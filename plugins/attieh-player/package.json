@@ -1,0 +1,9 @@
+{
+  "name": "attieh-player",
+  "version": "1.0.0",
+  "description": "Native VLC player for Attieh (plays mkv and other files the web view can't)",
+  "main": "index.js",
+  "license": "UNLICENSED",
+  "capacitor": { "ios": { "src": "ios" } },
+  "files": ["ios/", "AttiehPlayer.podspec", "index.js"]
+}

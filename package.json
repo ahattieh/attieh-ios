@@ -1,0 +1,18 @@
+{
+  "name": "attieh-ios",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Attieh IPTV for iPhone (Capacitor)",
+  "scripts": {
+    "sync": "npx cap sync ios",
+    "open": "npx cap open ios"
+  },
+  "dependencies": {
+    "@capacitor/core": "6.2.0",
+    "@capacitor/ios": "6.2.0",
+    "attieh-player": "file:plugins/attieh-player"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "6.2.0"
+  }
+}
