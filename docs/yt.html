@@ -20,7 +20,14 @@ window.onYouTubeIframeAPIReady = function () {
     events: {
       onReady: function (e) { if (mute) e.target.mute(); try { e.target.setPlaybackQuality('hd1080'); } catch (x) {} e.target.playVideo(); tell({ ready: 1 }); },
       onPlaybackQualityChange: function (e) { tell({ quality: e.data }); },
-      onStateChange: function (e) { if (e.data === 1) { try { e.target.setPlaybackQuality('hd1080'); } catch (x) {} } tell({ state: e.data }); },
+      onStateChange: function (e) {
+        var m = { state: e.data };
+        if (e.data === 1) {
+          try { e.target.setPlaybackQuality('hd1080'); } catch (x) {}
+          try { var vd = e.target.getVideoData && e.target.getVideoData(); if (vd && vd.video_id && vd.video_id !== id) m.ad = 1; } catch (x) {}
+        }
+        tell(m);
+      },
       onError: function (e) { tell({ error: e.data }); }
     }
   });
