@@ -7,7 +7,7 @@
 <script>
 /* Amira / Attieh promo player. Apps open this page in an iframe (?v=VIDEO_ID); it embeds YouTube from a real
    https origin (YouTube refuses embeds with no referrer — error 153) and reports state back with postMessage. */
-var q = new URLSearchParams(location.search), id = q.get('v') || '', mute = q.get('mute') !== '0', hq = q.get('hq') !== '0';
+var q = new URLSearchParams(location.search), id = q.get('v') || '', mute = q.get('mute') !== '0', hq = q.get('hq') !== '0', loop = q.get('loop') === '1';
 /* YouTube picks quality from the player's size: draw it at double size and shrink it, so it streams HD */
 if (hq) document.documentElement.className = 'hq';
 function tell(m) { m.amira = 'yt'; m.v = id; try { if (player && player.getPlaybackQuality) m.q = player.getPlaybackQuality(); } catch (e) {} try { parent.postMessage(m, '*'); } catch (e) {} }
@@ -16,7 +16,7 @@ var player;
 window.onYouTubeIframeAPIReady = function () {
   player = new YT.Player('p', {
     width: "100%", height: "100%", videoId: id, host: 'https://www.youtube.com',
-    playerVars: { autoplay: 1, mute: mute ? 1 : 0, vq: 'hd1080', controls: 0, rel: 0, modestbranding: 1, playsinline: 1, loop: 1, playlist: id, iv_load_policy: 3, disablekb: 1, fs: 0, origin: location.origin },
+    playerVars: { autoplay: 1, mute: mute ? 1 : 0, vq: 'hd1080', controls: 0, rel: 0, modestbranding: 1, playsinline: 1, loop: loop ? 1 : 0, playlist: loop ? id : undefined, iv_load_policy: 3, disablekb: 1, fs: 0, origin: location.origin },
     events: {
       onReady: function (e) { if (mute) e.target.mute(); try { e.target.setPlaybackQuality('hd1080'); } catch (x) {} e.target.playVideo(); tell({ ready: 1 }); },
       onPlaybackQualityChange: function (e) { tell({ quality: e.data }); },
