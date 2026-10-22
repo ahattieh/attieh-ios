@@ -2,14 +2,21 @@
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>promo</title>
-<style>html,body{margin:0;height:100%;background:#000;overflow:hidden}#p,iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:0}.hq #p,.hq iframe{width:200%;height:200%;transform:scale(.5);-webkit-transform:scale(.5);transform-origin:0 0;-webkit-transform-origin:0 0}</style>
+<style>html,body{margin:0;height:100%;background:#000;overflow:hidden}#p,iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:0}.hq #p,.hq iframe{transform-origin:0 0;-webkit-transform-origin:0 0}</style>
 </head><body><div id="p"></div>
 <script>
 /* Amira / Attieh promo player. Apps open this page in an iframe (?v=VIDEO_ID); it embeds YouTube from a real
    https origin (YouTube refuses embeds with no referrer — error 153) and reports state back with postMessage. */
 var q = new URLSearchParams(location.search), id = q.get('v') || '', mute = q.get('mute') !== '0', hq = q.get('hq') !== '0', loop = q.get('loop') === '1';
 /* YouTube picks quality from the player's size: draw it at double size and shrink it, so it streams HD */
-if (hq) document.documentElement.className = 'hq';
+/* size the player to ~1920 real pixels (1080p) — bigger makes YouTube send 1440p/4K, too heavy for a TV */
+if (hq) {
+  var k = Math.min(2, Math.max(1, 1920 / (window.innerWidth || 1920)));
+  if (k > 1.05) {
+    var st = document.createElement('style'); st.textContent = '.hq #p,.hq iframe{width:' + (k * 100) + '%;height:' + (k * 100) + '%;transform:scale(' + (1 / k) + ');-webkit-transform:scale(' + (1 / k) + ')}';
+    document.head.appendChild(st); document.documentElement.className = 'hq';
+  }
+}
 function tell(m) { m.amira = 'yt'; m.v = id; try { if (player && player.getPlaybackQuality) { m.q = player.getPlaybackQuality(); var lv = player.getAvailableQualityLevels && player.getAvailableQualityLevels(); if (lv && lv.length) m.max = lv[0] === 'auto' ? lv[1] : lv[0]; } } catch (e) {} try { parent.postMessage(m, '*'); } catch (e) {} }
 if (!/^[\w-]{11}$/.test(id)) tell({ error: 'bad-id' });
 var player;
