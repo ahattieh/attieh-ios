@@ -11,8 +11,8 @@ var q = new URLSearchParams(location.search), id = q.get('v') || '', mute = q.ge
 /* YouTube picks quality from the player's size: draw it at double size and shrink it, so it streams HD */
 /* size the player to ~1920 real pixels (1080p) — bigger makes YouTube send 1440p/4K, too heavy for a TV */
 if (hq) {
-  var k = Math.min(2, Math.max(1, 1920 / (window.innerWidth || 1920)));
-  if (k > 1.05) {
+  var k = Math.min(2, Math.max(0.5, 1920 / ((window.innerWidth || 1920) * (window.devicePixelRatio || 1))));
+  if (Math.abs(k - 1) > 0.05) {
     var st = document.createElement('style'); st.textContent = '.hq #p,.hq iframe{width:' + (k * 100) + '%;height:' + (k * 100) + '%;transform:scale(' + (1 / k) + ');-webkit-transform:scale(' + (1 / k) + ')}';
     document.head.appendChild(st); document.documentElement.className = 'hq';
   }
