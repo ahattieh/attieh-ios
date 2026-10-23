@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#0b0b10">
+<title>ريموت Amira</title>
+<style>
+:root{--bg:#0b0b10;--card:#1b1b24;--ac:#f5a524;--tx:#f2f2f5;--mu:#9a9aab}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--tx);font-family:-apple-system,"SF Arabic","Segoe UI",Tahoma,sans-serif}
+main{max-width:430px;margin:0 auto;padding:18px 16px 28px}
+h1{font-size:20px;margin:4px 0 2px}.st{color:var(--mu);font-size:13px;margin-bottom:16px}
+.st.ok{color:#58d68d}.st.bad{color:#ff6b6b}
+form{display:flex;gap:8px;margin-bottom:18px}
+input{flex:1;min-width:0;font-size:17px;padding:13px 14px;border-radius:14px;border:0;background:var(--card);color:var(--tx)}
+button{border:0;border-radius:16px;background:var(--card);color:var(--tx);font-size:18px;font-weight:700;padding:14px;touch-action:manipulation}
+button:active{background:#33334a;transform:scale(.97)}
+.send{background:var(--ac);color:#111;padding:0 18px}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:8px auto 18px;max-width:300px}
+.pad button{height:74px;font-size:26px}
+.pad .ok{background:var(--ac);color:#111;border-radius:50%;font-size:20px}
+.row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:10px}
+.cols{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.c{height:40px;border-radius:12px}
+.r{background:#d93a3a}.g{background:#2fae5a}.y{background:#e3b922}.b{background:#2d6cdf}
+</style></head><body><main>
+<h1>ريموت Amira</h1><div class="st" id="st">جاري الاتصال…</div>
+<form id="f"><input id="q" placeholder="اكتب للبحث على التلفزيون" autocomplete="off"><button class="send">إرسال</button></form>
+<div class="pad">
+  <span></span><button data-k="up">▲</button><span></span>
+  <button data-k="right">▶</button><button class="ok" data-k="ok">OK</button><button data-k="left">◀</button>
+  <span></span><button data-k="down">▼</button><span></span>
+</div>
+<div class="row"><button data-k="back">↩ رجوع</button><button data-k="home">⌂ الرئيسية</button><button data-k="play">⏯</button></div>
+<div class="row"><button data-k="chdown">قناة −</button><button data-k="search">🔍 بحث</button><button data-k="chup">قناة +</button></div>
+<div class="cols"><button class="c r" data-k="red"></button><button class="c g" data-k="green"></button><button class="c y" data-k="yellow"></button><button class="c b" data-k="blue"></button></div>
+</main>
+<script>
+/* sends key presses and text to the Amira app on the TV through a private ntfy.sh topic (from the QR code) */
+var topic = (location.hash.match(/t=([\w-]{8,64})/) || [])[1], st = document.getElementById('st');
+function send(o) {
+  if (!topic) return;
+  return fetch('https://ntfy.sh/' + topic, { method: 'POST', body: JSON.stringify(o) }).then(function (r) {
+    st.textContent = r.ok ? 'متصل بالتلفزيون' : 'ما وصل (' + r.status + ')'; st.className = 'st ' + (r.ok ? 'ok' : 'bad');
+  }, function () { st.textContent = 'ما في اتصال'; st.className = 'st bad'; });
+}
+if (!topic) { st.textContent = 'امسح الـ QR من التلفزيون أول'; st.className = 'st bad'; } else { st.textContent = 'جاهز'; st.className = 'st ok'; }
+document.querySelectorAll('[data-k]').forEach(function (b) {
+  b.addEventListener('click', function () { if (navigator.vibrate) navigator.vibrate(12); send({ k: b.getAttribute('data-k') }); });
+});
+document.getElementById('f').addEventListener('submit', function (e) {
+  e.preventDefault(); var v = document.getElementById('q').value.trim(); if (!v) return;
+  send({ q: v }); document.getElementById('q').blur();
+});
+</script></body></html>
