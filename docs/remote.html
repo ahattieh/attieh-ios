@@ -35,15 +35,90 @@ button:active{background:#33334a;transform:scale(.97)}
 <div class="cols"><button class="c r" data-k="red"></button><button class="c g" data-k="green"></button><button class="c y" data-k="yellow"></button><button class="c b" data-k="blue"></button></div>
 </main>
 <script>
-/* sends key presses and text to the Amira app on the TV through a private ntfy.sh topic (from the QR code) */
+/* Tiny MQTT 3.1.1 client over WebSocket (QoS 0 only) — used for the phone remote.
+   MQ.open(url, topic, onMsg, onState) -> { pub(str), close(), up() } */
+var MQ = (function () {
+  'use strict';
+  function utf8(s) { s = unescape(encodeURIComponent(s)); var a = []; for (var i = 0; i < s.length; i++) a.push(s.charCodeAt(i)); return a; }
+  function deutf8(a) { var s = ''; for (var i = 0; i < a.length; i++) s += String.fromCharCode(a[i]); try { return decodeURIComponent(escape(s)); } catch (e) { return s; } }
+  function str(s) { var b = utf8(s); return [b.length >> 8, b.length & 255].concat(b); }
+  function pkt(type, body) {
+    var len = body.length, h = [type];
+    do { var d = len % 128; len = Math.floor(len / 128); if (len > 0) d |= 128; h.push(d); } while (len > 0);
+    return new Uint8Array(h.concat(body)).buffer;
+  }
+  function open(url, topic, onMsg, onState) {
+    var ws = null, alive = false, closed = false, ping = null, retry = null, wait = 1000, pid = 1, queue = [];
+    function state(s) { if (onState) onState(s); }
+    function connect() {
+      if (closed) return;
+      try { ws = new WebSocket(url, 'mqtt'); } catch (e) { later(); return; }
+      ws.binaryType = 'arraybuffer';
+      ws.onopen = function () {
+        buf = [];
+        var cid = 'amira' + Math.random().toString(36).slice(2, 12);
+        ws.send(pkt(0x10, str('MQTT').concat([4, 2, 0, 50]).concat(str(cid))));
+      };
+      ws.onmessage = function (ev) { read(new Uint8Array(ev.data)); };
+      ws.onclose = function () { alive = false; clearInterval(ping); state('down'); later(); };
+      ws.onerror = function () { try { ws.close(); } catch (e) {} };
+    }
+    function later() { if (closed) return; clearTimeout(retry); retry = setTimeout(connect, wait); wait = Math.min(wait * 2, 20000); }
+    var buf = [];
+    function read(u) {
+      for (var i = 0; i < u.length; i++) buf.push(u[i]);
+      while (buf.length >= 2) {
+        var mul = 1, len = 0, p = 1, d;
+        do { if (p >= buf.length) return; d = buf[p++]; len += (d & 127) * mul; mul *= 128; } while (d & 128);
+        if (buf.length < p + len) return;
+        var b0 = buf[0], type = b0 & 0xf0, body = buf.slice(p, p + len); buf = buf.slice(p + len);
+        if (type === 0x20) {
+          if (body[1] !== 0) { state('refused'); try { ws.close(); } catch (e) {} return; }
+          alive = true; wait = 1000; state('up');
+          var id = pid++ & 0xffff || 1;
+          ws.send(pkt(0x82, [id >> 8, id & 255].concat(str(topic)).concat([0])));
+          clearInterval(ping); ping = setInterval(function () { try { ws.send(pkt(0xc0, [])); } catch (e) {} }, 25000);
+          while (queue.length) pub(queue.shift());
+        } else if (type === 0x30) {
+          var tl = (body[0] << 8) | body[1], skip = 2 + tl + ((b0 & 6) ? 2 : 0);
+          if (onMsg) onMsg(deutf8(body.slice(skip)));
+        }
+      }
+    }
+    function pub(s) {
+      if (!alive) { queue.push(s); if (queue.length > 5) queue.shift(); return false; }
+      try { ws.send(pkt(0x30, str(topic).concat(utf8(s)))); return true; } catch (e) { return false; }
+    }
+    function up() { if (!alive && !closed) { clearTimeout(retry); wait = 1000; if (!ws || ws.readyState > 1) connect(); } }
+    connect();
+    return { pub: pub, up: up, isUp: function () { return alive; }, close: function () { closed = true; clearInterval(ping); clearTimeout(retry); try { ws.close(); } catch (e) {} } };
+  }
+  return { open: open };
+})();
+
+/* sends key presses and text to the Amira app on the TV — MQTT over WebSocket (two public brokers), ntfy.sh only as a last resort */
 var topic = (location.hash.match(/t=([\w-]{8,64})/) || [])[1], st = document.getElementById('st');
+var BROKERS = window.AMIRA_MQ || ['wss://broker.emqx.io:8084/mqtt', 'wss://broker.hivemq.com:8884/mqtt'], conns = [], n = 0;
+function show(t, ok) { st.textContent = t; st.className = 'st ' + (ok ? 'ok' : 'bad'); }
+function upCount() { return conns.filter(function (c) { return c.isUp(); }).length; }
+function refresh() { var u = upCount(); show(u ? 'متصل بالتلفزيون' : 'جارِ الاتصال…', !!u); }
 function send(o) {
   if (!topic) return;
-  return fetch('https://ntfy.sh/' + topic, { method: 'POST', body: JSON.stringify(o) }).then(function (r) {
-    st.textContent = r.ok ? 'متصل بالتلفزيون' : 'ما وصل (' + r.status + ')'; st.className = 'st ' + (r.ok ? 'ok' : 'bad');
-  }, function () { st.textContent = 'ما في اتصال'; st.className = 'st bad'; });
+  o.i = Date.now().toString(36) + (n++) + Math.random().toString(36).slice(2, 5);
+  var s = JSON.stringify(o);
+  if (upCount()) { conns.forEach(function (c) { if (c.isUp()) c.pub(s); }); return; }
+  conns.forEach(function (c) { c.up(); });
+  fetch('https://ntfy.sh/' + topic, { method: 'POST', body: s }).then(function (r) {
+    if (r.ok) show('متصل بالتلفزيون', true); else if (!upCount()) show('جارِ الاتصال…', false);
+  }, function () { if (!upCount()) show('ما في إنترنت', false); });
 }
-if (!topic) { st.textContent = 'امسح الـ QR من التلفزيون أول'; st.className = 'st bad'; } else { st.textContent = 'جاهز'; st.className = 'st ok'; }
+if (!topic) show('امسح الـ QR من التلفزيون أول', false);
+else {
+  show('جارِ الاتصال…', false);
+  conns = BROKERS.map(function (u) { return MQ.open(u, 'amira/rm/' + topic, null, function () { refresh(); }); });
+  var hello = setInterval(function () { if (upCount()) { clearInterval(hello); send({ hello: 1 }); } }, 300);
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) conns.forEach(function (c) { c.up(); }); });
+}
 document.querySelectorAll('[data-k]').forEach(function (b) {
   b.addEventListener('click', function () { if (navigator.vibrate) navigator.vibrate(12); send({ k: b.getAttribute('data-k') }); });
 });
