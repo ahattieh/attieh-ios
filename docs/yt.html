@@ -41,13 +41,14 @@ window.onYouTubeIframeAPIReady = function () {
 };
 /* ads never get sound: while anything other than the promo plays the player stays muted, and the app is told */
 var wantSound = false, inAd = false;
-function isAd() {
-  try { var vd = player.getVideoData && player.getVideoData(); if (!vd) return false; return (vd.video_id && vd.video_id !== id) || (player.getPlayerState() === 1 && !vd.title); } catch (e) { return false; }
-}
+function vdata() { try { return (player.getVideoData && player.getVideoData()) || {}; } catch (e) { return {}; } }
+function isAd() { var vd = vdata(); return !!(vd.video_id && vd.video_id !== id); }
+/* no sound unless we're sure it's the promo itself (an ad, or a player that hasn't said what it plays yet, stays silent) */
+function unsure() { var vd = vdata(); return isAd() || !vd.title; }
 setInterval(function () {
   if (!player || !player.getPlayerState) return;
   var ad = isAd();
-  if (ad) { try { player.mute(); } catch (e) {} }
+  if (unsure()) { try { player.mute(); } catch (e) {} }
   else if (wantSound) { try { if (player.isMuted()) { player.unMute(); player.setVolume(100); } } catch (e) {} }
   if (ad !== inAd) { inAd = ad; tell(ad ? { ad: 1 } : { adEnd: 1 }); }
 }, 300);
@@ -55,7 +56,7 @@ window.addEventListener('message', function (e) {
   var d = e.data; if (!d || d.amira !== 'cmd' || !player) return;
   if (d.cmd === 'stop') { wantSound = false; player.stopVideo(); }
   else if (d.cmd === 'mute') { wantSound = false; player.mute(); }
-  else if (d.cmd === 'unmute') { wantSound = true; if (!isAd()) { player.unMute(); player.setVolume(100); } }
+  else if (d.cmd === 'unmute') { wantSound = true; if (!unsure()) { player.unMute(); player.setVolume(100); } }
 });
 var s = document.createElement('script'); s.src = 'https://www.youtube.com/iframe_api';
 s.onerror = function () { tell({ error: 'api-load' }); };
