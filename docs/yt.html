@@ -44,10 +44,22 @@ var wantSound = false, inAd = false;
 function vdata() { try { return (player.getVideoData && player.getVideoData()) || {}; } catch (e) { return {}; } }
 function isAd() { var vd = vdata(); return !!(vd.video_id && vd.video_id !== id); }
 /* no sound unless we're sure it's the promo itself (an ad, or a player that hasn't said what it plays yet, stays silent) */
-function unsure() { var vd = vdata(); return isAd() || !vd.title; }
+function unsure() { var vd = vdata(); return isAd() || !vd.title || inAd || !everMoved; }
+/* An ad inside the embed often keeps the promo's own id/title, so it can't be told apart by name.
+   But the promo's own clock doesn't move while an ad runs: "playing" (or stuck loading) with a frozen clock = not the promo.
+   Then: silent at once, and the app is told so it closes the player. */
+var lastT = -1, frozen = 0, readyAt = 0, everMoved = false;
+function contentStuck() {
+  var st = -2, t = 0; try { st = player.getPlayerState(); t = player.getCurrentTime() || 0; } catch (e) { return false; }
+  var moved = t > lastT + 0.05; lastT = t;
+  if (moved) { frozen = 0; everMoved = true; return false; }
+  if (st === 1 || ((st === 3 || st === -1) && readyAt && Date.now() - readyAt > 2500 && !everMoved)) frozen++;
+  return frozen >= 4;                                      // ~1.2 s with the promo's clock not moving
+}
 setInterval(function () {
   if (!player || !player.getPlayerState) return;
-  var ad = isAd();
+  if (!readyAt && player.getPlayerState() !== -2) readyAt = Date.now();
+  var ad = isAd() || contentStuck();
   if (unsure()) { try { player.mute(); } catch (e) {} }
   else if (wantSound) { try { if (player.isMuted()) { player.unMute(); player.setVolume(100); } } catch (e) {} }
   if (ad !== inAd) { inAd = ad; tell(ad ? { ad: 1 } : { adEnd: 1 }); }
