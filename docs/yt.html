@@ -66,7 +66,12 @@ setInterval(function () {
 }, 300);
 window.addEventListener('message', function (e) {
   var d = e.data; if (!d || d.amira !== 'cmd' || !player) return;
-  if (d.cmd === 'stop') { wantSound = false; player.stopVideo(); }
+  if (d.cmd === 'stop') { wantSound = false; try { player.mute(); player.stopVideo(); } catch (x) {} }
+  else if (d.cmd === 'load' && /^[\w-]{11}$/.test(d.v || '')) {          // reuse this page for another promo: no reload, no freeze
+    id = d.v; wantSound = false; inAd = false; lastT = -1; frozen = 0; everMoved = false; readyAt = Date.now();
+    try { player.mute(); player.loadVideoById({ videoId: id, suggestedQuality: 'hd1080' }); } catch (x) {}
+    tell({ ready: 1 });
+  }
   else if (d.cmd === 'mute') { wantSound = false; player.mute(); }
   else if (d.cmd === 'unmute') { wantSound = true; if (!unsure()) { player.unMute(); player.setVolume(100); } }
 });
