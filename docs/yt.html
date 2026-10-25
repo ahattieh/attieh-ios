@@ -18,14 +18,14 @@ if (hq) {
   }
 }
 function tell(m) { m.amira = 'yt'; m.v = id; try { if (player && player.getPlaybackQuality) { m.q = player.getPlaybackQuality(); var lv = player.getAvailableQualityLevels && player.getAvailableQualityLevels(); if (lv && lv.length) m.max = lv[0] === 'auto' ? lv[1] : lv[0]; } } catch (e) {} try { parent.postMessage(m, '*'); } catch (e) {} }
-if (!/^[\w-]{11}$/.test(id)) tell({ error: 'bad-id' });
+if (id && !/^[\w-]{11}$/.test(id)) tell({ error: 'bad-id' });          // no id = warm-up: load the player now, the promo comes later
 var player;
 window.onYouTubeIframeAPIReady = function () {
   player = new YT.Player('p', {
-    width: "100%", height: "100%", videoId: id, host: 'https://www.youtube-nocookie.com',
+    width: "100%", height: "100%", videoId: id || undefined, host: 'https://www.youtube-nocookie.com',
     playerVars: { autoplay: 1, mute: mute ? 1 : 0, vq: 'hd1080', controls: 0, rel: 0, modestbranding: 1, playsinline: 1, loop: loop ? 1 : 0, playlist: loop ? id : undefined, iv_load_policy: 3, disablekb: 1, fs: 0, origin: location.origin },
     events: {
-      onReady: function (e) { if (mute) e.target.mute(); try { e.target.setPlaybackQuality('hd1080'); } catch (x) {} e.target.playVideo(); tell({ ready: 1 }); },
+      onReady: function (e) { if (mute) e.target.mute(); if (!id) { tell({ ready: 1, warm: 1 }); return; } try { e.target.setPlaybackQuality('hd1080'); } catch (x) {} e.target.playVideo(); tell({ ready: 1 }); },
       onPlaybackQualityChange: function (e) { tell({ quality: e.data }); },
       onStateChange: function (e) {
         var m = { state: e.data };
