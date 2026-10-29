@@ -8,6 +8,10 @@
 /* Amira / Attieh promo player. Apps open this page in an iframe (?v=VIDEO_ID); it embeds YouTube from a real
    https origin (YouTube refuses embeds with no referrer — error 153) and reports state back with postMessage. */
 var q = new URLSearchParams(location.search), id = q.get('v') || '', mute = q.get('mute') !== '0', hq = q.get('hq') !== '0', loop = q.get('loop') === '1';
+/* full=1: a video the viewer chose to watch (match highlights). YouTube runs exactly as it is — its own ads included,
+   with their sound; this page only passes the remote's keys in and reports the time out. */
+var full = q.get('full') === '1';
+if (full) mute = false;
 /* YouTube picks quality from the player's size: draw it at double size and shrink it, so it streams HD */
 /* size the player to ~1920 real pixels (1080p) — bigger makes YouTube send 1440p/4K, too heavy for a TV */
 if (hq) {
@@ -25,7 +29,7 @@ window.onYouTubeIframeAPIReady = function () {
     width: "100%", height: "100%", videoId: id || undefined, host: 'https://www.youtube-nocookie.com',
     playerVars: { autoplay: 1, mute: mute ? 1 : 0, vq: 'hd1080', controls: 0, rel: 0, modestbranding: 1, playsinline: 1, loop: loop ? 1 : 0, playlist: loop ? id : undefined, iv_load_policy: 3, disablekb: 1, fs: 0, origin: location.origin },
     events: {
-      onReady: function (e) { if (mute) e.target.mute(); if (!id) { tell({ ready: 1, warm: 1 }); return; } try { e.target.setPlaybackQuality('hd1080'); } catch (x) {} e.target.playVideo(); tell({ ready: 1 }); },
+      onReady: function (e) { if (mute) e.target.mute(); else if (full) { try { e.target.unMute(); e.target.setVolume(100); } catch (x) {} } if (!id) { tell({ ready: 1, warm: 1 }); return; } try { e.target.setPlaybackQuality('hd1080'); } catch (x) {} e.target.playVideo(); tell({ ready: 1 }); },
       onPlaybackQualityChange: function (e) { tell({ quality: e.data }); },
       onStateChange: function (e) {
         var m = { state: e.data };
@@ -58,6 +62,10 @@ function contentStuck() {
 }
 setInterval(function () {
   if (!player || !player.getPlayerState) return;
+  if (full) {                        // chosen video: never touched — just report where it is
+    try { tell({ tick: 1, t: player.getCurrentTime() || 0, d: player.getDuration() || 0, st: player.getPlayerState() }); } catch (e) {}
+    return;
+  }
   if (!readyAt && player.getPlayerState() !== -2) readyAt = Date.now();
   var ad = isAd() || contentStuck();
   if (unsure()) { try { player.mute(); } catch (e) {} }
@@ -72,8 +80,10 @@ window.addEventListener('message', function (e) {
     try { player.mute(); player.loadVideoById({ videoId: id, suggestedQuality: 'hd1080' }); } catch (x) {}
     tell({ ready: 1 });
   }
+  else if (d.cmd === 'toggle') { try { if (player.getPlayerState() === 1) player.pauseVideo(); else player.playVideo(); } catch (x) {} }
+  else if (d.cmd === 'seek') { try { var to = Math.max(0, (player.getCurrentTime() || 0) + (+d.by || 0)); player.seekTo(to, true); } catch (x) {} }
   else if (d.cmd === 'mute') { wantSound = false; player.mute(); }
-  else if (d.cmd === 'unmute') { wantSound = true; if (!unsure()) { player.unMute(); player.setVolume(100); } }
+  else if (d.cmd === 'unmute') { wantSound = true; if (full || !unsure()) { player.unMute(); player.setVolume(100); } }
 });
 var s = document.createElement('script'); s.src = 'https://www.youtube.com/iframe_api';
 s.onerror = function () { tell({ error: 'api-load' }); };
